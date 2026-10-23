@@ -3,6 +3,9 @@ import { EventCard } from "@/components/event-card";
 import { EmptyState, PageHeader, SectionHeading } from "@/components/ui";
 import { listEvents } from "@/lib/data/events";
 
+// Page en cache, régénérée au plus toutes les 5 minutes et dès qu'un contenu change dans le back-office.
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "Les événements de l'Amphi",
   description: "Dîners-débats et soirées thématiques réservés en priorité aux membres de L'Amphi.",

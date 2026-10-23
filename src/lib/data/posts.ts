@@ -1,8 +1,11 @@
 import "server-only";
 import { demoPosts } from "../demo";
 import { isSupabaseConfigured } from "../supabase/config";
-import { createClient } from "../supabase/server";
+import { createPublicClient } from "../supabase/public";
 import type { Post, PostCategory, PostTeaser } from "../types";
+
+// Lectures publiques (client anonyme) : les pages qui les utilisent restent en cache.
+// En cas d'erreur, on lève une exception : le cache garde alors la dernière version valide.
 
 export async function listPostTeasers({
   categories,
@@ -18,8 +21,7 @@ export async function listPostTeasers({
     return { posts: posts.slice(offset, offset + limit), total: posts.length };
   }
 
-  const supabase = await createClient();
-  const { data, count, error } = await supabase
+  const { data, count, error } = await createPublicClient()
     .from("post_teasers")
     .select("*", { count: "exact" })
     .in("category", categories)
@@ -29,8 +31,9 @@ export async function listPostTeasers({
   return { posts: (data ?? []) as PostTeaser[], total: count ?? 0 };
 }
 
-// Renvoie l'aperçu (toujours visible) et le contenu complet (null si réservé aux membres).
-export async function getPost(
+// Aperçu (toujours visible) et contenu complet s'il est public. Le contenu d'un article
+// réservé aux membres est chargé dans le navigateur (voir components/members-only-content.tsx).
+export async function getPublicPost(
   slug: string,
   categories: PostCategory[],
 ): Promise<{ teaser: PostTeaser | null; post: Post | null }> {
@@ -50,12 +53,14 @@ export async function getPost(
     return { teaser, post };
   }
 
-  const supabase = await createClient();
-  const [{ data: teaser }, { data: post }] = await Promise.all([
+  const supabase = createPublicClient();
+  const [teaserResult, postResult] = await Promise.all([
     supabase.from("post_teasers").select("*").eq("slug", slug).in("category", categories).maybeSingle(),
     supabase.from("posts").select("*").eq("slug", slug).in("category", categories).maybeSingle(),
   ]);
-  return { teaser: teaser as PostTeaser | null, post: post as Post | null };
+  if (teaserResult.error) throw teaserResult.error;
+  if (postResult.error) throw postResult.error;
+  return { teaser: teaserResult.data as PostTeaser | null, post: postResult.data as Post | null };
 }
 
 // Agenda : événements extérieurs à venir, du plus proche au plus lointain.
@@ -68,14 +73,14 @@ export async function listUpcomingAgenda(limit = 6) {
       .slice(0, limit);
   }
 
-  const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await createPublicClient()
     .from("post_teasers")
     .select("*")
     .eq("category", "agenda")
     .gte("event_date", today)
     .order("event_date", { ascending: true })
     .limit(limit);
+  if (error) throw error;
   return (data ?? []) as PostTeaser[];
 }
 

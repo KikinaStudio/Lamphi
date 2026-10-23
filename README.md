@@ -14,11 +14,22 @@ Refonte de [amphi-sante.com](https://www.amphi-sante.com) (anciennement sur Fram
 | --- | --- | --- |
 | [Supabase](https://supabase.com) | Base de données, comptes membres, images | 500 Mo de données, 1 Go d'images, 50 000 utilisateurs actifs / mois |
 | [Resend](https://resend.com) | Envoi des e-mails (invitations, mots de passe) | 3 000 e-mails / mois, 100 / jour |
-| Hébergement du site | Next.js | Voir ci-dessous |
+| [Netlify](https://www.netlify.com) | Hébergement du site | 300 crédits / mois, usage professionnel autorisé |
 
-**Hébergement.** L'offre gratuite de Vercel (Hobby) est réservée à un usage **non commercial** ; un club professionnel relève plutôt de l'offre Pro (20 $/mois). Alternatives compatibles Next.js : [Netlify](https://www.netlify.com), dont l'offre gratuite n'est pas limitée à l'usage personnel (vérifiez leurs conditions du moment), ou un petit serveur (`npm run build && npm start`). Le code ne dépend d'aucun hébergeur.
+### Ce que couvrent les 300 crédits Netlify
 
-**À savoir.** Un projet Supabase gratuit est mis en pause après 7 jours sans aucune activité (il suffit de le relancer depuis le tableau de bord). Les visites régulières du site suffisent à l'éviter.
+| Poste | Tarif Netlify | Ce que consomme le site |
+| --- | --- | --- |
+| Mise en production (déploiement) | 15 crédits | Uniquement quand le **code** change. Publier un article, un événement ou valider un membre ne redéploie rien. |
+| Bande passante | 20 crédits / Go | ~375 Ko pour une première visite, ~50 Ko par page ensuite (images servies par Supabase, pas par Netlify) |
+| Requêtes | 2 crédits / 10 000 | ~35 requêtes pour une première visite |
+| Calcul serveur | 10 crédits / Go-heure | Quasi nul : les pages publiques sont servies **depuis le cache** ; seuls l'espace membre et le back-office sollicitent le serveur |
+
+En pratique : **~20 crédits pour 1 000 visiteurs** (3 pages chacun) + 15 crédits par mise à jour du code, soit de la place pour **environ 10 000 visiteurs par mois** avec quelques mises à jour. Le nombre de membres n'entre pas en compte, seulement les visites.
+
+**À surveiller.** L'offre gratuite a un plafond strict : si les 300 crédits sont épuisés, Netlify suspend le site jusqu'au mois suivant (aucune facture surprise). Consultez *Team settings → Usage* de temps en temps ; en cas de besoin, l'offre Personal (9 $/mois, 1 000 crédits) rétablit le site immédiatement.
+
+**À savoir.** Un projet Supabase gratuit est mis en pause après 7 jours sans aucune activité (il suffit de le relancer depuis le tableau de bord). Les visites régulières du site suffisent à l'éviter. Resend gratuit envoie au plus 100 e-mails par jour : pour inviter beaucoup d'anciens membres d'un coup, étalez sur plusieurs jours.
 
 ## Mise en ligne, pas à pas
 
@@ -41,9 +52,13 @@ Refonte de [amphi-sante.com](https://www.amphi-sante.com) (anciennement sur Fram
 3. Dans Supabase → *SMTP Settings* : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = la clé d'API, expéditeur `contact@amphi-sante.com`, nom `L'Amphi`.
 4. La même clé dans `RESEND_API_KEY` active les notifications du site (nouvelle candidature pour l'équipe, accusé de réception au candidat, e-mail de refus facultatif).
 
-### 3. Hébergement
+### 3. Netlify (hébergement)
 
-Importez le dépôt GitHub chez l'hébergeur (Vercel ou Netlify : *Add new project* → choisir le dépôt), puis renseignez les variables d'environnement décrites dans [`.env.example`](.env.example) :
+[![Déployer sur Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/KikinaStudio/Lamphi)
+
+1. Créez un compte sur [netlify.com](https://www.netlify.com) (offre *Free*) en vous connectant avec GitHub.
+2. Cliquez sur le bouton ci-dessus, ou *Add new project → Import an existing project → GitHub* → dépôt `KikinaStudio/Lamphi`, branche `main`. Les réglages de build sont lus dans [`netlify.toml`](netlify.toml) : rien à modifier.
+3. Avant le premier déploiement, renseignez les variables d'environnement (*Project configuration → Environment variables*), décrites dans [`.env.example`](.env.example). Cochez *Contains secret values* pour `SUPABASE_SECRET_KEY` et `RESEND_API_KEY` uniquement.
 
 | Variable | Valeur |
 | --- | --- |
@@ -55,7 +70,10 @@ Importez le dépôt GitHub chez l'hébergeur (Vercel ou Netlify : *Add new proje
 | `EMAIL_FROM` | `L'Amphi <contact@amphi-sante.com>` |
 | `ADMIN_NOTIFICATION_EMAIL` | adresse(s) prévenue(s) à chaque candidature, séparées par des virgules |
 
-Enfin, reliez le domaine `amphi-sante.com` au projet (section *Domains* de l'hébergeur) et retirez-le de Framer.
+4. Lancez le déploiement et vérifiez le site sur l'adresse provisoire `xxx.netlify.app` (pour tester les invitations à ce stade, mettez provisoirement cette adresse dans `NEXT_PUBLIC_SITE_URL` et dans la *Site URL* de Supabase). Reliez ensuite le domaine : *Domain management → Add a domain* → `www.amphi-sante.com`, et suivez les indications DNS chez votre registrar. Le certificat HTTPS est automatique.
+5. Une fois le site vérifié, retirez le domaine de Framer et résiliez l'abonnement.
+
+Chaque modification poussée sur `main` redéploie le site (15 crédits) ; les pull requests ont un aperçu gratuit.
 
 ### 4. Premier administrateur
 
@@ -131,7 +149,8 @@ Sans variables Supabase, le site démarre en **mode démonstration** (contenus d
 
 ### Architecture
 
-- **Next.js 16** (App Router, Server Actions), **Tailwind CSS 4**, éditeur **Tiptap**.
+- **Next.js 16** (App Router, Server Actions), **Tailwind CSS 4**, éditeur **Tiptap**, hébergé sur **Netlify**.
+- **Pages publiques en cache** (régénérées toutes les 5 minutes et dès qu'un contenu change dans le back-office) : aucune requête à la base ni calcul serveur par visite. Ce qui dépend du membre connecté (bouton « Espace membre », article réservé, inscription à un dîner, galerie) est chargé dans le navigateur, sous le contrôle des règles de la base.
 - **Supabase** : authentification (invitation, mot de passe, lien magique), PostgreSQL, stockage des images.
 - **Sécurité dans la base** (Row Level Security), pas seulement dans l'interface : un visiteur ne peut ni lire l'annuaire ni le contenu d'un article réservé ; un membre ne peut modifier que son propre profil (jamais son rôle) ; seuls les admins publient ; les coordonnées masquées par un membre ne sortent jamais de la base. Ces règles sont couvertes par `supabase/tests`.
 

@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { eventPath } from "@/lib/content";
 import { parisLocalToIso, slugify } from "@/lib/format";
 import { sanitizeRichText } from "@/lib/sanitize";
 import { createClient } from "@/lib/supabase/server";
@@ -29,12 +28,13 @@ const eventSchema = z.object({
   status: z.enum(["draft", "published"]),
 });
 
-function revalidateEventPages(slug: string) {
+// Pages publiques en cache à régénérer après une modification.
+function revalidateEventPages() {
   revalidatePath("/");
   revalidatePath("/le-club");
   revalidatePath("/evenements-de-amphi");
-  revalidatePath(eventPath({ slug }));
-  revalidatePath("/espace-membre");
+  revalidatePath("/evenements-de-amphi/[slug]", "page");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/admin/evenements");
 }
 
@@ -74,7 +74,7 @@ export async function saveEvent(eventId: string | null, _previous: FormState, fo
     return { ok: false, message: "Enregistrement impossible.", values };
   }
 
-  revalidateEventPages(slug);
+  revalidateEventPages();
   if (!eventId) redirect(`/admin/evenements/${result.data.id}?enregistre=1`);
   return { ok: true, message: "Événement enregistré." };
 }
@@ -82,8 +82,8 @@ export async function saveEvent(eventId: string | null, _previous: FormState, fo
 export async function deleteEvent(eventId: string) {
   await requireAdmin("/admin/evenements");
   const supabase = await createClient();
-  const { data } = await supabase.from("events").delete().eq("id", eventId).select("slug").maybeSingle();
-  if (data) revalidateEventPages(data.slug);
+  await supabase.from("events").delete().eq("id", eventId);
+  revalidateEventPages();
   redirect("/admin/evenements");
 }
 

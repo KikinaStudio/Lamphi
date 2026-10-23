@@ -77,28 +77,6 @@ export function MembersOnly({ next, title = "Contenu réservé aux membres" }: {
   );
 }
 
-export function Pagination({ page, totalPages, basePath }: { page: number; totalPages: number; basePath: string }) {
-  if (totalPages <= 1) return null;
-  const href = (target: number) => (target === 1 ? basePath : `${basePath}?page=${target}`);
-  return (
-    <nav aria-label="Pagination" className="mt-14 flex items-center justify-center gap-3 text-sm">
-      {page > 1 && (
-        <Link href={href(page - 1)} className="btn btn-outline btn-sm">
-          Précédent
-        </Link>
-      )}
-      <span className="text-muted">
-        Page {page} sur {totalPages}
-      </span>
-      {page < totalPages && (
-        <Link href={href(page + 1)} className="btn btn-outline btn-sm">
-          Suivant
-        </Link>
-      )}
-    </nav>
-  );
-}
-
 export function Avatar({
   name,
   initials,

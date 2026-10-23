@@ -8,6 +8,9 @@ import { listEvents } from "@/lib/data/events";
 import { listPartners } from "@/lib/data/partners";
 import { listRecentPosts } from "@/lib/data/posts";
 
+// Page en cache, régénérée au plus toutes les 5 minutes et dès qu'un contenu change dans le back-office.
+export const revalidate = 300;
+
 export default async function HomePage() {
   const [events, decryptages, plume, actus, partners] = await Promise.all([
     listEvents({ upcoming: true, limit: 2 }),

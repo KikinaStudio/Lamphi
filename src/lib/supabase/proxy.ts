@@ -4,8 +4,8 @@ import { isSupabaseConfigured, supabasePublishableKey, supabaseUrl } from "./con
 
 const PROTECTED_PREFIXES = ["/espace-membre", "/annuaire-des-membres", "/admin"];
 
-// Rafraîchit la session Supabase à chaque requête et renvoie vers la connexion
-// les visiteurs non connectés qui demandent une page réservée.
+// Rafraîchit la session Supabase et renvoie vers la connexion les visiteurs non
+// connectés qui demandent une page réservée (voir le matcher dans src/proxy.ts).
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!isSupabaseConfigured) return response;

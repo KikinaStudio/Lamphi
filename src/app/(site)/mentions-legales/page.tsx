@@ -27,7 +27,7 @@ export default function LegalPage() {
         <div>
           <h2 className="text-2xl text-ink">Hébergement</h2>
           <p className="mt-2">
-            Site : [Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — ou votre hébergeur]
+            Site : Netlify, Inc., San Francisco, États-Unis [adresse complète sur netlify.com]
             <br />
             Données des membres : Supabase (région Union européenne choisie lors de la création du projet).
           </p>

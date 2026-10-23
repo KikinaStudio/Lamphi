@@ -1,55 +1,50 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { POST_CATEGORIES, decodeSlug, postPath } from "@/lib/content";
-import { listPostTeasers, getPost } from "@/lib/data/posts";
+import { getPublicPost, listPostTeasers } from "@/lib/data/posts";
 import { formatDate } from "@/lib/format";
 import type { PostCategory } from "@/lib/types";
 import { CalendarIcon, LinkIcon, PinIcon } from "./icons";
+import { LoadMorePosts } from "./load-more-posts";
+import { MembersOnlyContent } from "./members-only-content";
 import { PostGrid } from "./post-card";
-import { RichText } from "./rich-text";
-import { EmptyState, MembersOnly, PageHeader, Pagination } from "./ui";
-import { VideoEmbed } from "./video-embed";
+import { PostBody } from "./post-body";
+import { EmptyState, PageHeader } from "./ui";
 
-const PAGE_SIZE = 12;
+export const POSTS_PAGE_SIZE = 12;
 
 export async function PostListPage({
   categories,
   eyebrow,
   title,
   intro,
-  basePath,
-  searchParams,
 }: {
   categories: PostCategory[];
   eyebrow: string;
   title: string;
   intro: string;
-  basePath: string;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { page: pageParam } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
-  const { posts, total } = await listPostTeasers({ categories, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE });
+  const { posts, total } = await listPostTeasers({ categories, limit: POSTS_PAGE_SIZE });
+  const showCategory = categories.length > 1;
 
   return (
     <>
       <PageHeader eyebrow={eyebrow} title={title} intro={intro} />
       <section className="container-page py-14">
         {posts.length > 0 ? (
-          <PostGrid posts={posts} showCategory={categories.length > 1} />
+          <PostGrid posts={posts} showCategory={showCategory} />
         ) : (
           <EmptyState>Aucune publication pour le moment.</EmptyState>
         )}
-        <Pagination page={page} totalPages={Math.ceil(total / PAGE_SIZE)} basePath={basePath} />
+        <LoadMorePosts categories={categories} offset={posts.length} total={total} pageSize={POSTS_PAGE_SIZE} showCategory={showCategory} />
       </section>
     </>
   );
 }
 
 export async function postMetadata(slug: string, categories: PostCategory[]): Promise<Metadata> {
-  const { teaser } = await getPost(decodeSlug(slug), categories);
+  const { teaser } = await getPublicPost(decodeSlug(slug), categories);
   if (!teaser) return {};
   return {
     title: teaser.title,
@@ -76,12 +71,11 @@ export async function PostDetailPage({
   backLabel: string;
 }) {
   const slug = decodeSlug(rawSlug);
-  const { teaser, post } = await getPost(slug, categories);
+  const { teaser, post } = await getPublicPost(slug, categories);
   const item = post ?? teaser;
   if (!item) notFound();
 
   const category = POST_CATEGORIES[item.category];
-  const isDraft = post && post.status !== "published";
 
   return (
     <article>
@@ -94,9 +88,6 @@ export async function PostDetailPage({
             {category.label}
             {item.published_at && item.category !== "agenda" && ` · ${formatDate(item.published_at)}`}
           </p>
-          {isDraft && (
-            <p className="badge mt-3 bg-accent-soft text-accent-strong">Brouillon — visible uniquement par les admins</p>
-          )}
           <h1 className="mt-4 text-4xl leading-tight sm:text-5xl">{item.title}</h1>
           {item.excerpt && <p className="mt-5 text-xl leading-relaxed text-muted">{item.excerpt}</p>}
           {item.author_name && (
@@ -130,24 +121,7 @@ export async function PostDetailPage({
       </header>
 
       <div className="container-page max-w-4xl py-12">
-        {post ? (
-          <>
-            {post.video_url ? (
-              <div className="mb-10">
-                <VideoEmbed url={post.video_url} title={post.title} />
-              </div>
-            ) : (
-              post.cover_url && (
-                <div className="relative mb-10 aspect-[16/9] overflow-hidden rounded-2xl">
-                  <Image src={post.cover_url} alt="" fill sizes="(min-width: 896px) 896px, 100vw" className="object-cover" priority />
-                </div>
-              )
-            )}
-            <RichText html={post.content_html} />
-          </>
-        ) : (
-          <MembersOnly next={postPath(item)} />
-        )}
+        {post ? <PostBody post={post} /> : <MembersOnlyContent postId={item.id} path={postPath(item)} />}
       </div>
     </article>
   );

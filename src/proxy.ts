@@ -6,8 +6,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    // Tout sauf les fichiers statiques et les images
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml)$).*)",
-  ],
+  // Uniquement les pages réservées : les pages publiques, en cache, ne déclenchent aucun calcul.
+  // Ailleurs, la session est rafraîchie par le navigateur (et par les actions serveur si besoin).
+  matcher: ["/espace-membre/:path*", "/annuaire-des-membres/:path*", "/admin/:path*"],
 };

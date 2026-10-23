@@ -32,11 +32,15 @@ const postSchema = z.object({
   published_at: z.string().trim(),
 });
 
-function revalidatePostPages(category: keyof typeof POST_CATEGORIES, slug: string) {
-  const basePath = POST_CATEGORIES[category].basePath;
+// Les pages publiques sont en cache : on les régénère toutes (un article peut changer de rubrique
+// ou d'adresse, et apparaît sur l'accueil). Le coût est négligeable, la régénération se fait à la visite.
+function revalidatePostPages() {
   revalidatePath("/");
-  revalidatePath(basePath);
-  revalidatePath(`${basePath}/${slug}`);
+  for (const { basePath } of Object.values(POST_CATEGORIES)) {
+    revalidatePath(basePath);
+    revalidatePath(`${basePath}/[slug]`, "page");
+  }
+  revalidatePath("/sitemap.xml");
   revalidatePath("/admin/articles");
 }
 
@@ -79,7 +83,7 @@ export async function savePost(postId: string | null, _previous: FormState, form
     return { ok: false, message: "Enregistrement impossible.", values };
   }
 
-  revalidatePostPages(data.category, slug);
+  revalidatePostPages();
   if (!postId) redirect(`/admin/articles/${result.data.id}?enregistre=1`);
   return { ok: true, message: data.status === "published" ? "Article enregistré et publié." : "Brouillon enregistré." };
 }
@@ -87,7 +91,7 @@ export async function savePost(postId: string | null, _previous: FormState, form
 export async function deletePost(postId: string) {
   await requireAdmin("/admin/articles");
   const supabase = await createClient();
-  const { data } = await supabase.from("posts").delete().eq("id", postId).select("category, slug").maybeSingle();
-  if (data) revalidatePostPages(data.category, data.slug);
+  await supabase.from("posts").delete().eq("id", postId);
+  revalidatePostPages();
   redirect("/admin/articles");
 }

@@ -21,6 +21,7 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
   const { data } = await supabase.from("posts").select("*").eq("id", id).maybeSingle();
   const post = data as Post | null;
   if (!post) notFound();
+  const isLive = post.status === "published" && Boolean(post.published_at) && new Date(post.published_at!) <= new Date();
 
   return (
     <>
@@ -29,9 +30,15 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
         title="Modifier l'article"
         actions={
           <>
-            <Link href={postPath(post)} target="_blank" className="btn btn-outline btn-sm">
-              {post.status === "published" ? "Voir la page ↗" : "Prévisualiser ↗"}
-            </Link>
+            {isLive ? (
+              <Link href={postPath(post)} target="_blank" className="btn btn-outline btn-sm">
+                Voir la page ↗
+              </Link>
+            ) : (
+              <Link href={`/admin/articles/${post.id}/apercu`} className="btn btn-outline btn-sm">
+                Aperçu
+              </Link>
+            )}
             <ConfirmButton action={deletePost.bind(null, post.id)} message="Supprimer définitivement cet article ?">
               Supprimer
             </ConfirmButton>

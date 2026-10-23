@@ -5,6 +5,9 @@ import { PageHeader, SectionHeading } from "@/components/ui";
 import { benefits, eligibility } from "@/content/site";
 import { listEvents } from "@/lib/data/events";
 
+// Page en cache, régénérée au plus toutes les 5 minutes et dès qu'un contenu change dans le back-office.
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "Le Club",
   description: "Un réseau de personnalités influentes du secteur de la santé : dîners, rencontres et échanges stratégiques.",

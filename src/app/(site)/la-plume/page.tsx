@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarIcon, PinIcon } from "@/components/icons";
+import { LoadMorePosts } from "@/components/load-more-posts";
 import { PostGrid } from "@/components/post-card";
-import { EmptyState, PageHeader, Pagination, SectionHeading } from "@/components/ui";
+import { POSTS_PAGE_SIZE } from "@/components/post-pages";
+import { EmptyState, PageHeader, SectionHeading } from "@/components/ui";
 import { postPath } from "@/lib/content";
 import { listPostTeasers, listUpcomingAgenda } from "@/lib/data/posts";
 import { formatDate } from "@/lib/format";
@@ -12,13 +14,12 @@ export const metadata: Metadata = {
   description: "Tribunes, interviews et regards d'experts : les membres de L'Amphi partagent leur expertise et leur vision.",
 };
 
-const PAGE_SIZE = 12;
+// Page en cache, régénérée au plus toutes les 5 minutes et dès qu'un contenu change dans le back-office.
+export const revalidate = 300;
 
-export default async function LaPlumePage({ searchParams }: PageProps<"/la-plume">) {
-  const { page: pageParam } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
+export default async function LaPlumePage() {
   const [{ posts, total }, agenda] = await Promise.all([
-    listPostTeasers({ categories: ["tribune", "interview"], limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
+    listPostTeasers({ categories: ["tribune", "interview"], limit: POSTS_PAGE_SIZE }),
     listUpcomingAgenda(),
   ]);
 
@@ -31,7 +32,7 @@ export default async function LaPlumePage({ searchParams }: PageProps<"/la-plume
       />
       <section className="container-page py-14">
         {posts.length > 0 ? <PostGrid posts={posts} /> : <EmptyState>Les premières tribunes arrivent bientôt.</EmptyState>}
-        <Pagination page={page} totalPages={Math.ceil(total / PAGE_SIZE)} basePath="/la-plume" />
+        <LoadMorePosts categories={["tribune", "interview"]} offset={posts.length} total={total} pageSize={POSTS_PAGE_SIZE} showCategory />
       </section>
 
       <section id="agenda" className="scroll-mt-24 border-t border-line bg-surface py-16">

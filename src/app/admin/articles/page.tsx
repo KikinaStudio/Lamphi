@@ -72,9 +72,15 @@ export default async function PostsAdminPage({ searchParams }: PageProps<"/admin
                 ) : (
                   <StatusBadge tone="success">Publié</StatusBadge>
                 )}
-                <Link href={postPath(post)} target="_blank" className="text-xs text-accent-strong hover:underline">
-                  Voir ↗
-                </Link>
+                {post.status === "published" && !scheduled ? (
+                  <Link href={postPath(post)} target="_blank" className="text-xs text-accent-strong hover:underline">
+                    Voir ↗
+                  </Link>
+                ) : (
+                  <Link href={`/admin/articles/${post.id}/apercu`} className="text-xs text-accent-strong hover:underline">
+                    Aperçu
+                  </Link>
+                )}
               </div>
             </div>
           );

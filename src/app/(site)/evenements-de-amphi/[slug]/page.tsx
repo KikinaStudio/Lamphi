@@ -4,11 +4,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarIcon, PinIcon } from "@/components/icons";
 import { RichText } from "@/components/rich-text";
-import { getViewer, isActiveMember } from "@/lib/auth";
 import { decodeSlug, eventPath } from "@/lib/content";
-import { getEventBySlug, getMyRegistration, getSeatsLeft, listEventPhotos } from "@/lib/data/events";
+import { getEventBySlug } from "@/lib/data/events";
 import { formatDateTime, formatTime } from "@/lib/format";
+import { EventGallery } from "./event-gallery";
 import { RegistrationBox } from "./registration-box";
+
+// Page en cache, régénérée au plus toutes les 5 minutes et dès qu'un contenu change dans le back-office.
+export const revalidate = 300;
+
+// Aucune page générée au build : chaque événement est rendu à sa première visite puis mis en cache.
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({ params }: PageProps<"/evenements-de-amphi/[slug]">): Promise<Metadata> {
   const event = await getEventBySlug(decodeSlug((await params).slug));
@@ -24,15 +32,8 @@ export default async function EventPage({ params }: PageProps<"/evenements-de-am
   const event = await getEventBySlug(decodeSlug((await params).slug));
   if (!event) notFound();
 
-  const viewer = await getViewer();
-  const member = isActiveMember(viewer) ? viewer : null;
+  // Calculé à la génération de la page : au pire 5 minutes de décalage, sans incidence ici.
   const isPast = new Date(event.starts_at) < new Date();
-
-  const [seatsLeft, registration, photos] = await Promise.all([
-    getSeatsLeft(event.id),
-    member ? getMyRegistration(event.id, member.userId) : null,
-    member ? listEventPhotos(event.id) : [],
-  ]);
 
   return (
     <article>
@@ -75,31 +76,11 @@ export default async function EventPage({ params }: PageProps<"/evenements-de-am
             </div>
           )}
           <RichText html={event.content_html} />
-
-          {photos.length > 0 && (
-            <section className="mt-14">
-              <h2 className="text-3xl">Galerie photos</h2>
-              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {photos.map((photo) => (
-                  <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer" className="relative block aspect-square overflow-hidden rounded-lg">
-                    <Image src={photo.url} alt={photo.caption ?? ""} fill sizes="(min-width: 640px) 33vw, 50vw" className="object-cover transition hover:scale-105" />
-                  </a>
-                ))}
-              </div>
-            </section>
-          )}
+          <EventGallery eventId={event.id} />
         </div>
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
-          <RegistrationBox
-            eventId={event.id}
-            eventPath={eventPath(event)}
-            isPast={isPast}
-            registrationOpen={event.registration_open}
-            seatsLeft={seatsLeft}
-            isMember={Boolean(member)}
-            status={registration?.status ?? null}
-          />
+          <RegistrationBox eventId={event.id} eventPath={eventPath(event)} isPast={isPast} registrationOpen={event.registration_open} />
         </aside>
       </div>
     </article>

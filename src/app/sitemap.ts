@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
-import { createClient } from "@supabase/supabase-js";
 import { eventPath, postPath } from "@/lib/content";
-import { isSupabaseConfigured, supabasePublishableKey, supabaseUrl } from "@/lib/supabase/config";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createPublicClient } from "@/lib/supabase/public";
 import { getSiteUrl } from "@/lib/site-url";
 import type { ClubEvent, PostTeaser } from "@/lib/types";
 
@@ -15,8 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   if (!isSupabaseConfigured) return entries;
 
-  // Client anonyme sans cookies : uniquement ce qui est public.
-  const supabase = createClient(supabaseUrl, supabasePublishableKey, { auth: { persistSession: false } });
+  const supabase = createPublicClient();
   const [{ data: posts }, { data: events }] = await Promise.all([
     supabase.from("post_teasers").select("slug, category, published_at"),
     supabase.from("events").select("slug, updated_at"),
