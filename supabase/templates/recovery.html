@@ -1,0 +1,19 @@
+<!-- Supabase > Authentication > Emails > Reset password
+     Objet conseillé : L'Amphi — choisissez votre mot de passe -->
+<div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #0f1d2e;">
+  <h1 style="font-weight: normal; font-size: 26px;">Votre mot de passe</h1>
+  <p style="font-family: Arial, sans-serif; font-size: 15px; line-height: 1.6;">
+    Bonjour,<br /><br />
+    Pour choisir un nouveau mot de passe pour votre espace membre de L'Amphi, cliquez sur le bouton ci-dessous :
+  </p>
+  <p style="margin: 28px 0;">
+    <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/nouveau-mot-de-passe"
+       style="background: #0f1d2e; color: #f7f4ee; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-family: Arial, sans-serif; font-weight: bold;">
+      Choisir mon mot de passe
+    </a>
+  </p>
+  <p style="font-family: Arial, sans-serif; font-size: 13px; color: #5d6776;">
+    Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail.
+  </p>
+  <p style="font-family: Arial, sans-serif; font-size: 15px;">L'équipe de L'Amphi</p>
+</div>
