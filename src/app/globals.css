@@ -1,0 +1,228 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/*
+  Charte graphique — modifiez ces valeurs pour l'adapter à l'identité du club.
+  ink     : texte principal, fonds sombres
+  paper   : fond des pages
+  accent  : boutons, liens, détails
+*/
+@theme {
+  --color-ink: #0f1d2e;
+  --color-ink-soft: #2a3a4f;
+  --color-paper: #f7f4ee;
+  --color-surface: #ffffff;
+  --color-line: #e4ded3;
+  --color-muted: #5d6776;
+  --color-accent: #9c7a4f;
+  --color-accent-strong: #7e6040;
+  --color-accent-soft: #efe6d8;
+  --color-success: #2f6b4f;
+  --color-danger: #a33a32;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.7rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    transition:
+      background-color 150ms,
+      color 150ms,
+      border-color 150ms;
+    cursor: pointer;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-ink-soft);
+  }
+
+  .btn-accent {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .btn-accent:hover:not(:disabled) {
+    background: var(--color-accent-strong);
+  }
+
+  .btn-outline {
+    border: 1px solid currentColor;
+    background: transparent;
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  .btn-danger {
+    background: var(--color-danger);
+    color: #fff;
+  }
+
+  .btn-sm {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+
+  .field-input {
+    width: 100%;
+    border: 1px solid var(--color-line);
+    border-radius: 0.6rem;
+    background: var(--color-surface);
+    padding: 0.65rem 0.8rem;
+    font-size: 0.95rem;
+    color: var(--color-ink);
+  }
+
+  .field-input:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0;
+    border-color: transparent;
+  }
+
+  .field-hint {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+
+  .field-error {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--color-danger);
+  }
+
+  .card {
+    border: 1px solid var(--color-line);
+    border-radius: 1rem;
+    background: var(--color-surface);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+}
+
+/* Contenu riche (articles, événements) */
+.rich-text {
+  --tw-prose-body: var(--color-ink-soft);
+  --tw-prose-headings: var(--color-ink);
+  --tw-prose-links: var(--color-accent-strong);
+  --tw-prose-bold: var(--color-ink);
+  --tw-prose-quotes: var(--color-ink);
+  --tw-prose-quote-borders: var(--color-accent);
+  --tw-prose-bullets: var(--color-accent);
+  --tw-prose-counters: var(--color-accent);
+  --tw-prose-hr: var(--color-line);
+}
+
+.rich-text iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.rich-text img {
+  border-radius: 0.75rem;
+}
+
+/* Éditeur du back-office */
+.editor-content .ProseMirror {
+  min-height: 22rem;
+  padding: 1rem 1.25rem;
+  outline: none;
+}
+
+.editor-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-muted);
+}
+
+.editor-content .ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid var(--color-accent);
+}

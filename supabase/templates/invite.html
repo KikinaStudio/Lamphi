@@ -1,0 +1,23 @@
+<!-- Supabase > Authentication > Emails > Invite user
+     Objet conseillé : Bienvenue à L'Amphi — créez votre accès -->
+<div style="font-family: Georgia, serif; max-width: 520px; margin: 0 auto; color: #0f1d2e;">
+  <h1 style="font-weight: normal; font-size: 26px;">Bienvenue à L'Amphi</h1>
+  <p style="font-family: Arial, sans-serif; font-size: 15px; line-height: 1.6;">
+    Bonjour,<br /><br />
+    Nous avons le plaisir de vous informer que votre candidature a été retenue par le comité de sélection.
+    Vous faites désormais partie du club des leaders en santé.
+  </p>
+  <p style="font-family: Arial, sans-serif; font-size: 15px; line-height: 1.6;">
+    Pour accéder à l'espace membre (annuaire, dîners, contenus exclusifs), choisissez votre mot de passe :
+  </p>
+  <p style="margin: 28px 0;">
+    <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/nouveau-mot-de-passe"
+       style="background: #0f1d2e; color: #f7f4ee; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-family: Arial, sans-serif; font-weight: bold;">
+      Créer mon accès
+    </a>
+  </p>
+  <p style="font-family: Arial, sans-serif; font-size: 13px; color: #5d6776;">
+    Ce lien est personnel et valable 24 heures. Passé ce délai, utilisez « Mot de passe oublié » sur la page de connexion.
+  </p>
+  <p style="font-family: Arial, sans-serif; font-size: 15px;">L'équipe de L'Amphi</p>
+</div>
